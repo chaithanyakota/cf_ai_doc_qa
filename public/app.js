@@ -14,6 +14,40 @@ function setStatus(text) {
   status.textContent = text;
 }
 
+function escapeHtml(s) {
+  if (typeof s !== "string") return "";
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** Turn markdown code blocks (``` or ```bash etc.) into <pre><code> boxes. */
+function formatMessageWithCodeBlocks(text) {
+  if (!text) return "";
+  const parts = [];
+  let lastIndex = 0;
+  const re = /```(\w*)\n?([\s\S]*?)```/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    parts.push({ type: "text", value: text.slice(lastIndex, m.index) });
+    parts.push({ type: "code", lang: m[1], value: m[2] });
+    lastIndex = re.lastIndex;
+  }
+  parts.push({ type: "text", value: text.slice(lastIndex) });
+  let html = "";
+  for (const p of parts) {
+    if (p.type === "text") {
+      html += escapeHtml(p.value).replace(/\n/g, "<br>");
+    } else {
+      const langClass = p.lang ? ` language-${escapeHtml(p.lang)}` : "";
+      html += `<pre class="chat-code"><code class="${langClass}">${escapeHtml(p.value.trim())}</code></pre>`;
+    }
+  }
+  return html;
+}
+
 function addMessage(role, content, isStreaming = false) {
   const div = document.createElement("div");
   div.className = `msg ${role}`;
@@ -22,7 +56,11 @@ function addMessage(role, content, isStreaming = false) {
   roleEl.textContent = role === "user" ? "You" : "DocChat";
   const contentEl = document.createElement("div");
   contentEl.className = "content";
-  contentEl.textContent = content;
+  if (role === "assistant" && content) {
+    contentEl.innerHTML = formatMessageWithCodeBlocks(content);
+  } else {
+    contentEl.textContent = content;
+  }
   if (isStreaming) contentEl.dataset.streaming = "1";
   div.appendChild(roleEl);
   div.appendChild(contentEl);
@@ -31,8 +69,8 @@ function addMessage(role, content, isStreaming = false) {
   return contentEl;
 }
 
-function updateStreamingEl(contentEl, chunk) {
-  contentEl.textContent += chunk;
+function updateStreamingEl(contentEl, fullText) {
+  contentEl.innerHTML = formatMessageWithCodeBlocks(fullText);
   chat.scrollTop = chat.scrollHeight;
 }
 
@@ -86,12 +124,14 @@ askBtn.addEventListener("click", async () => {
       const data = await res.json().catch(() => ({}));
       contentEl.textContent = data.error || `Error ${res.status}`;
       contentEl.dataset.streaming = "";
+      askBtn.disabled = false;
       return;
     }
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let streamedText = "";
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -102,7 +142,10 @@ askBtn.addEventListener("click", async () => {
         if (line.startsWith("data: ")) {
           try {
             const data = JSON.parse(line.slice(6));
-            if (data.response != null) updateStreamingEl(contentEl, data.response);
+            if (data.response != null) {
+              streamedText += data.response;
+              updateStreamingEl(contentEl, streamedText);
+            }
           } catch (_) {}
         }
       }
@@ -112,7 +155,10 @@ askBtn.addEventListener("click", async () => {
       if (line.startsWith("data: ")) {
         try {
           const data = JSON.parse(line.slice(6));
-          if (data.response != null) updateStreamingEl(contentEl, data.response);
+          if (data.response != null) {
+            streamedText += data.response;
+            updateStreamingEl(contentEl, streamedText);
+          }
         } catch (_) {}
       }
     }

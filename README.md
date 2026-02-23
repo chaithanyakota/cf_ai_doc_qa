@@ -1,4 +1,4 @@
-# One-URL Doc Q&A
+# API Doc Q&A
 
 An AI-powered Q&A app that loads **one** documentation URL, chunks it in memory, and answers questions using only that page. Built using Cloudflare tools - Workers, Durable Objects, and Workers AI
 

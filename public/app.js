@@ -19,7 +19,7 @@ function addMessage(role, content, isStreaming = false) {
   div.className = `msg ${role}`;
   const roleEl = document.createElement("div");
   roleEl.className = "role";
-  roleEl.textContent = role === "user" ? "You" : "Doc Q&A";
+  roleEl.textContent = role === "user" ? "You" : "DocChat";
   const contentEl = document.createElement("div");
   contentEl.className = "content";
   contentEl.textContent = content;

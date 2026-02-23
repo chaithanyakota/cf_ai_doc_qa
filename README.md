@@ -34,9 +34,11 @@ Open the URL Wrangler prints (e.g. `http://localhost:8787`). Enter a documentati
 npm run deploy
 ```
 
+Durable Objects use SQLite storage (`new_sqlite_classes` in `wrangler.toml`), which is required on Cloudflare’s free plan. The migration in `wrangler.toml` creates the `DocSession` namespace with SQLite.
+
 ## Project layout
 
-- `src/index.ts` – Worker: session cookie, forwards `/api/*` to the Durable Object, serves static from `public/`.
+- `src/server.ts` – Worker: session cookie, forwards `/api/*` to the Durable Object, serves static from `public/`.
 - `src/DocSession.ts` – Durable Object: `/set-url` (fetch, strip HTML, chunk, persist), `/ask` (keyword retrieval + Llama 3.3 stream), `/status` (url/chunks/messages count).
 - `public/index.html`, `public/app.js` – Frontend: URL input, chat UI, streamed answers (SSE parsing).
 

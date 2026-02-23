@@ -2,6 +2,11 @@
 
 An AI-powered Q&A app that loads **one** documentation URL, chunks it in memory, and answers questions using only that page. Built using Cloudflare tools - Workers, Durable Objects, and Workers AI
 
+## Demo
+https://github.com/user-attachments/assets/b935f6bd-624e-404d-85f4-fcb262c8afad
+
+
+
 ## Features
 
 - **Set URL**: Paste a doc URL → Worker fetches the page, strips HTML, chunks by section/size, stores chunks in a Durable Object for your session.

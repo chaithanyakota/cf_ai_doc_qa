@@ -1,4 +1,4 @@
-# DocChat (cf_ai_)
+# DocChat
 
 An AI-powered doc chat app that loads **one** documentation URL, chunks it in memory, and answers questions using that page as context. Built on Cloudflare Workers, Durable Objects, and Workers AI (Llama 3.3).
 
